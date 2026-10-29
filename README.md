@@ -1,101 +1,219 @@
-# WasuTechGRPC
+## gRPC Microservices with NestJS and Nx
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
-
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Run tasks
-
-To run the dev server for your app, use:
-
-```sh
-npx nx serve wasuTech-gRPC
+#### Create a NestJS Nx Workspace
+```bash
+npx create-nx-workspace@latest wasuTech-gRPC --preset=nest
 ```
+> Enter press koro
+<img width="777" height="244" alt="image" src="https://github.com/user-attachments/assets/b6890e90-8a64-4ad3-b462-ae76bb39f60f" />
 
-To create a production bundle:
+<img width="710" height="283" alt="image" src="https://github.com/user-attachments/assets/dd54f440-0136-4ee9-96cd-cbd13706e3ef" />
 
-```sh
-npx nx build wasuTech-gRPC
+<img width="687" height="335" alt="image" src="https://github.com/user-attachments/assets/a19ab57e-c7b4-4ce4-9416-eaddfb8d78dc" />
+
+<img width="702" height="392" alt="image" src="https://github.com/user-attachments/assets/c5222058-dee7-4fa2-895c-a6f9664a54a1" />
+
+<img width="674" height="450" alt="image" src="https://github.com/user-attachments/assets/efd6c5ab-fc91-457e-ab1a-77f5948b7ad0" />
+
+<img width="773" height="570" alt="image" src="https://github.com/user-attachments/assets/2dc33906-319c-4b48-8f6c-ee2785310484" />
+
+<img width="720" height="620" alt="image" src="https://github.com/user-attachments/assets/1f526712-3da5-402c-b1e2-f327af988012" />
+
+---
+
+#### Navigate to the Project Directory
+```bash
+cd wasuTech-gRPC
 ```
-
-To see all available targets to run for a project, run:
-
-```sh
-npx nx show project wasuTech-gRPC
+---
+#### Generate the Inventory Service
+```bash 
+npx nx generate @nx/nest:app inventory-service
 ```
+<img width="785" height="296" alt="image" src="https://github.com/user-attachments/assets/06649baa-11a6-404f-89d0-ab0d503c6e32" />
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+<img width="783" height="327" alt="image" src="https://github.com/user-attachments/assets/6996e807-6c6b-456b-9afc-4d7b2c035952" />
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/nest:app demo
+#### Generate the Order Service
+```bash
+npx nx generate @nx/nest:app order-service
 ```
+---
 
-To generate a new library, use:
 
-```sh
-npx nx g @nx/node:lib mylib
+#### Install gRPC Dependencies
+```bash
+npm i @grpc/grpc-js @grpc/proto-loader "@nestjs/microservices@^11"
 ```
+---
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+#### Create the gRPC Protocol Buffer Definition
+> root directory te---> `libs/proto/inventory.proto`
+```ts
+syntax = "proto3";
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+package inventory;
 
-## Set up CI!
+service InventoryService {
+    rpc CheckStock (StockRequest) returns (StockResponse);
+}
 
-### Step 1
+message StockRequest {
+    string productId = 1;
+}
 
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+message StockResponse {
+    int32 availableQuantity = 1;
+    bool inStock = 2;
+}
 ```
+---
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+#### Configure the Inventory gRPC Server
+> `inventory-service/src/main.ts`
+```ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app/app.module';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { join } from 'path';
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+async function bootstrap() {
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
+    transport: Transport.GRPC,
+    options: {
+      package: 'inventory',
+      protoPath: join(process.cwd(), 'libs/proto/inventory.proto'),
+      url: 'localhost:50051', 
+    }
+  });
 
-### Step 2
+  await app.listen();
+  console.log('Inventory gRPC service is running!')
+}
 
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+bootstrap();
 ```
+---
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+#### Implement the Inventory Stock Check Handler
+> `inventory-service/src/app/app.controller.ts`
+```ts
+import { Controller } from '@nestjs/common';
+import { GrpcMethod } from '@nestjs/microservices';
 
-## Install Nx Console
+@Controller()
+export class AppController {
+  @GrpcMethod('InventoryService', 'CheckStock')
+  checkStock(data: {productId: string}) {
+    const items: Record<string, number> = {
+      '123': 50, 
+      '456': 0,
+    }
+    const qty = items[data.productId] || 0;
+    return { 
+      availableQuantity: qty,
+      inStock: qty > 0, 
+    };
+  }
+}
+```
+---
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+#### Configure the gRPC Client in Order Service
+> `order-service/src/app/app.module.ts`
+```ts
+import { Module } from '@nestjs/common';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { AppController } from './app.controller';
+import { join } from 'path';
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+@Module({
+  imports: [
+    ClientsModule.register([
+      {
+        name: 'INVENTORY_PACKAGE',
+        transport: Transport.GRPC,
+        options: {
+          package: 'inventory',
+          protoPath: join(process.cwd(), 'libs/proto/inventory.proto'),
+          url: 'localhost:50051',
+        }
+      }
+    ])
+  ],
+  controllers: [AppController],
+})
+export class AppModule {}
+```
+---
 
-## Useful links
+#### Implement the Order Service Controller
+> `order-service/src/app/app.controller.ts`
+```ts
+import { Controller, Get, Inject, OnModuleInit, Query, } from '@nestjs/common';
+import { Observable, lastValueFrom } from 'rxjs';
+import { ClientGrpc } from '@nestjs/microservices';
 
-Learn more:
+interface InventoryService {
+  checkStock(data: { productId: string }) : Observable<any>;
+}
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/nest?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+@Controller('order')
+export class AppController implements OnModuleInit {
+  private inventoryService!: InventoryService;
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+  constructor(@Inject('INVENTORY_PACKAGE') private client: ClientGrpc) {}
+
+  onModuleInit() {
+    this.inventoryService = this.client.getService<InventoryService>('InventoryService');
+  }
+
+  @Get('check-item')
+  async checkItem(@Query('pid') pid: string) {
+    const stockStatus = await lastValueFrom(
+      this.inventoryService.checkStock({ productId: pid })
+    )
+    
+    if(stockStatus.inStock) {
+      return {
+        status: 'Available',
+        quantity: stockStatus.availableQuantity
+      }
+    }
+    return {
+      status: 'Out of Stock',
+      quantity: 0,
+    }
+  }
+}
+```
+---
+
+#### Start the Inventory gRPC Service
+```bash
+npx nx serve inventory-service
+```
+---
+
+#### Start the Order Service
+```bash
+npx nx serve order-service
+```
+---
+
+#### Test the gRPC Communication Using Browser
+```bash
+localhost:3000/api/order/check-item?pid=123
+```
+```bash
+localhost:3000/api/order/check-item?pid=456
+```
+---
+
+#### OUTPUT
+<img width="485" height="157" alt="image" src="https://github.com/user-attachments/assets/cb6b7048-bf85-49c4-ae82-9417e7c0789f" />
+
+<img width="494" height="172" alt="image" src="https://github.com/user-attachments/assets/fc12535a-f2c6-464b-a1fe-f45f378882ae" />

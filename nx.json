@@ -33,7 +33,11 @@
       "plugin": "@nx/jest/plugin",
       "options": {
         "targetName": "test"
-      }
+      },
+      "exclude": [
+        "inventory-service-e2e/**/*",
+        "order-service-e2e/**/*"
+      ]
     }
   ]
 }
