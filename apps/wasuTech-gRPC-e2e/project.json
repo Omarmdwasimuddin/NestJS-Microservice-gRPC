@@ -1,0 +1,23 @@
+{
+  "name": "wasuTech-gRPC-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "implicitDependencies": [
+    "wasuTech-gRPC"
+  ],
+  "projectType": "application",
+  "targets": {
+    "e2e": {
+      "command": "jest --passWithNoTests",
+      "options": {
+        "cwd": "apps/wasuTech-gRPC-e2e"
+      },
+      "outputs": [
+        "{workspaceRoot}/coverage/{e2eProjectRoot}"
+      ],
+      "dependsOn": [
+        "wasuTech-gRPC:build",
+        "wasuTech-gRPC:serve"
+      ]
+    }
+  }
+}
